@@ -29,7 +29,7 @@ filigran_html = f"""
 <style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap');</style>
 <div class="watermark-bg"></div>
 <style>
-.watermark-bg {{ position: fixed; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); background-image: url("data:image/png;base64,{filigran_b64}"); background-size: 25%; background-position: center; background-repeat: no-repeat; opacity: 0.35; z-index: 0; pointer-events: none; }}
+.watermark-bg {{ position: fixed; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); background-image: url("data:image/png;base64,{filigran_b64}"); background-size: 25%; background-position: center; background-repeat: no-repeat; opacity: 0.65; z-index: 0; pointer-events: none; }}
 </style>
 """ if filigran_b64 else "<style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap');</style>"
 st.markdown(filigran_html, unsafe_allow_html=True)
@@ -38,16 +38,16 @@ st.markdown("""
 <style>
 header {visibility: hidden; height: 0px !important;}
 footer {visibility: hidden; height: 0px !important;}
-.block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; margin-top: -35px; max-width: 98% !important; position: relative; z-index: 10; }
-[data-testid="stAppViewContainer"] { background-color: #050810; overflow: hidden; } 
+.block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; margin-top: -30px; max-width: 98% !important; position: relative; z-index: 10; }
+[data-testid="stAppViewContainer"] { background-color: #050810; overflow: hidden; overflow-y: auto;} 
 
-.metric-card, .ref-card { background: rgba(20, 25, 35, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.3); border-radius: 12px; text-align: center; position: relative; z-index: 10; transition: all 0.3s ease; }
+.metric-card, .ref-card { background: rgba(10, 15, 25, 0.25); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.3); border-radius: 12px; text-align: center; position: relative; z-index: 10; transition: all 0.3s ease; }
 .metric-card { padding: 5px; margin-bottom: 0px; }
 .metric-title { font-size: 24px; color: #ffffff; font-weight: 700; text-transform: uppercase; margin-bottom: 0px; letter-spacing: 1px; }
-.metric-value { font-size: 50px; font-weight: bold; color: #ffffff; line-height: 1.1; text-shadow: 0px 2px 4px rgba(0,0,0,0.5); }
+.metric-value { font-size: 50px; font-weight: bold; color: #ffffff; line-height: 1.1; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); }
 .ref-card { padding: 5px; border-radius: 12px; }
 .ref-title { color: #ffffff; font-size: 20px; font-weight: 600; margin-bottom: 0px; }
-.ref-value { font-size: 34px; font-weight: bold; color: #fff; line-height: 1.1; text-shadow: 0px 2px 4px rgba(0,0,0,0.5); }
+.ref-value { font-size: 34px; font-weight: bold; color: #fff; line-height: 1.1; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); }
 
 @keyframes blink-green { 0% { border-color: rgba(76,175,80,0.5); box-shadow: 0 0 5px rgba(76,175,80,0.5); } 50% { border-color: #4caf50; background: rgba(76, 175, 80, 0.2); box-shadow: 0 0 30px rgba(76,175,80,0.8); } 100% { border-color: rgba(76,175,80,0.5); box-shadow: 0 0 5px rgba(76,175,80,0.5); } }
 .alarm-up { animation: blink-green 1.5s infinite !important; }
@@ -60,15 +60,18 @@ footer {visibility: hidden; height: 0px !important;}
 .marquee-item { margin-right: 50px; }
 .marquee-item b { color: #ffffff; font-weight: 700; margin-right: 8px; }
 
+/* SCROLL İNDİKATÖRÜ */
+@keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+.scroll-indicator { text-align: center; margin-top: 60px; margin-bottom: 60px; animation: bounce 2s infinite; color: rgba(0, 229, 255, 0.7); font-family: 'Orbitron', sans-serif; font-size: 18px; letter-spacing: 2px; }
+
 div[data-testid="stVerticalBlock"] > div { padding-bottom: 0.1rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # --- VERİ İŞLEME VE FORMATLAMA ---
-def get_ingilizce_tarih():
-    gunler_en = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+def get_tarih_formatsiz():
     now = datetime.datetime.now()
-    return f"{now.strftime('%d.%m.%Y')} / {gunler_en[now.weekday()]}"
+    return f"{now.strftime('%d.%m.%Y')}"
 
 def format_tamsayi(deger, sembol=""):
     try:
@@ -149,68 +152,66 @@ def canli_ve_altbant_verilerini_cek():
         if degisim <= -alarm_limiti: return "alarm_down"
         return "normal"
     
-    # GÜÇLENDİRİLMİŞ VERİ ÇEKİCİ
-    def investing_verisi_al(url, yf_ticker, is_tr=False):
-        onceki = 0.0
-        guncel = 0.0
+    def get_data_safe(ticker, inv_url, is_tr):
+        val, prev = 0.0, 0.0
         
-        # 1. Önceki Gün Verisini Çek
-        try:
-            if yf_ticker:
-                hist = yf.Ticker(yf_ticker).history(period="5d")
-                if len(hist) > 1: onceki = float(hist['Close'].iloc[-2])
-        except: pass
-        
-        # 2. Investing.com Canlı Çekim
-        try:
-            scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
-            res = scraper.get(url, timeout=10)
-            if res.status_code == 200:
-                match = re.search(r'data-test="instrument-price-last"[^>]*>([\d\.,]+)', res.text)
-                if not match: match = re.search(r'class="text-5xl[^>]*>([\d\.,]+)', res.text)
-                if match:
-                    val_str = match.group(1)
-                    if is_tr: val_str = val_str.replace('.', '').replace(',', '.')
-                    else: val_str = val_str.replace(',', '')
-                    guncel = float(re.sub(r'[^0-9.]', '', val_str))
-        except: pass
-        
-        # 3. Investing Başarısızsa Yfinance Canlı (FastInfo) Devreye Girsin
-        if guncel == 0.0 and yf_ticker:
+        # 1. Yfinance Previous Close
+        if ticker:
             try:
-                tkr = yf.Ticker(yf_ticker)
-                p = tkr.fastinfo.last_price
-                if p and p > 0: guncel = float(p)
-                else:
-                    hist = tkr.history(period="2d")
-                    if not hist.empty: guncel = float(hist['Close'].iloc[-1])
+                tkr = yf.Ticker(ticker)
+                hist = tkr.history(period="5d")
+                if len(hist) > 1: prev = float(hist['Close'].iloc[-2])
+                elif len(hist) == 1: prev = float(hist['Close'].iloc[0])
             except: pass
             
-        return guncel, onceki
+        # 2. Investing.com
+        if inv_url:
+            try:
+                scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
+                res = scraper.get(inv_url, timeout=5)
+                if res.status_code == 200:
+                    match = re.search(r'data-test="instrument-price-last"[^>]*>([\d\.,]+)', res.text)
+                    if not match: match = re.search(r'class="text-5xl[^>]*>([\d\.,]+)', res.text)
+                    if match:
+                        v_str = match.group(1)
+                        if is_tr: v_str = v_str.replace('.', '').replace(',', '.')
+                        else: v_str = v_str.replace(',', '')
+                        val = float(re.sub(r'[^0-9.]', '', v_str))
+            except: pass
+            
+        # 3. Yfinance Fallback (Fastinfo hatası giderildi, history kullanıldı)
+        if val == 0.0 and ticker:
+            try:
+                hist = yf.Ticker(ticker).history(period="1d", interval="2m")
+                if not hist.empty:
+                    val = float(hist['Close'].iloc[-1])
+                else:
+                    hist2 = yf.Ticker(ticker).history(period="2d")
+                    if not hist2.empty:
+                        val = float(hist2['Close'].iloc[-1])
+            except: pass
+            
+        return val, prev
 
-    usd_g, usd_o = investing_verisi_al("https://tr.investing.com/currencies/usd-try", "TRY=X", is_tr=True)
+    usd_g, usd_o = get_data_safe("TRY=X", "https://tr.investing.com/currencies/usd-try", True)
     if usd_g > 0:
         veri_paketi["USD/TL"]["val"] = usd_g
         veri_paketi["USD/TL"]["durum"] = alarm_hesapla(usd_g, usd_o)
 
-    eur_g, eur_o = investing_verisi_al("https://tr.investing.com/currencies/eur-try", "EURTRY=X", is_tr=True)
+    eur_g, eur_o = get_data_safe("EURTRY=X", "https://tr.investing.com/currencies/eur-try", True)
     if eur_g > 0:
         veri_paketi["EURO/TL"]["val"] = eur_g
         veri_paketi["EURO/TL"]["durum"] = alarm_hesapla(eur_g, eur_o)
 
-    lme_g, lme_o = investing_verisi_al("https://www.investing.com/commodities/aluminum", "ALI=F", is_tr=False)
+    lme_g, lme_o = get_data_safe("ALI=F", "https://www.investing.com/commodities/aluminum", False)
     if lme_g > 0:
         veri_paketi["LME Aluminium ($)"]["val"] = lme_g
         veri_paketi["LME Aluminium ($)"]["durum"] = alarm_hesapla(lme_g, lme_o)
 
-    try:
-        par_hist = yf.Ticker("EURUSD=X").history(period="2d")
-        if len(par_hist) >= 1:
-            p_guncel = float(par_hist['Close'].iloc[-1])
-            p_onceki = float(par_hist['Close'].iloc[0]) if len(par_hist) > 1 else p_guncel
-            veri_paketi["PARİTE (EURO/USD)"]["val"] = p_guncel
-            veri_paketi["PARİTE (EURO/USD)"]["durum"] = alarm_hesapla(p_guncel, p_onceki)
-    except: pass
+    p_guncel, p_onceki = get_data_safe("EURUSD=X", None, False)
+    if p_guncel > 0:
+        veri_paketi["PARİTE (EURO/USD)"]["val"] = p_guncel
+        veri_paketi["PARİTE (EURO/USD)"]["durum"] = alarm_hesapla(p_guncel, p_onceki)
 
     if veri_paketi["PARİTE (EURO/USD)"]["val"] > 0 and veri_paketi["LME Aluminium ($)"]["val"] > 0: 
         veri_paketi["LME Aluminium (€)"]["val"] = veri_paketi["LME Aluminium ($)"]["val"] / veri_paketi["PARİTE (EURO/USD)"]["val"]
@@ -229,21 +230,12 @@ def canli_ve_altbant_verilerini_cek():
             except: continue
     except: pass
 
-    ekstra_semboller = {"BTC-USD": "BTC", "XU100.IS": "BIST", "BZ=F": "BRENT"}
-    for sembol, isim in ekstra_semboller.items():
-        try:
-            tkr = yf.Ticker(sembol)
-            p = tkr.fastinfo.last_price
-            if p and p > 0: alt_bant[isim] = float(p)
-            else:
-                hist = tkr.history(period="2d")
-                if len(hist) > 0: alt_bant[isim] = float(hist['Close'].iloc[-1])
-        except: pass
-            
-    ons_g, _ = investing_verisi_al("https://tr.investing.com/currencies/xau-usd", "XAUUSD=X", is_tr=True)
-    if ons_g > 0: alt_bant["ONS"] = ons_g
-
-    gram_g, _ = investing_verisi_al("https://tr.investing.com/currencies/gau-try", None, is_tr=True)
+    alt_bant["BTC"], _ = get_data_safe("BTC-USD", None, False)
+    alt_bant["BIST"], _ = get_data_safe("XU100.IS", None, False)
+    alt_bant["BRENT"], _ = get_data_safe("BZ=F", None, False)
+    alt_bant["ONS"], _ = get_data_safe("XAUUSD=X", "https://tr.investing.com/currencies/xau-usd", True)
+    
+    gram_g, _ = get_data_safe("GC=F", "https://tr.investing.com/currencies/gau-try", True)
     if gram_g > 0: 
         alt_bant["GRAM"] = gram_g
     elif alt_bant["ONS"] > 0 and veri_paketi["USD/TL"]["val"] > 0:
@@ -259,14 +251,13 @@ top_empty = st.empty()
 with top_empty.container():
     now = datetime.datetime.now()
     ust_panel_html = f"""
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 5px; margin-top: 5px; margin-bottom: 10px; position: relative; z-index: 10;">
-        <div style="font-family: 'Orbitron', sans-serif; font-size: 40px; color: #4ade80; font-weight: 700; letter-spacing: 2px; text-shadow: 0px 0px 10px rgba(74,222,128,0.4);">{get_ingilizce_tarih()}</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; margin-bottom: 10px;">
+        <div style="font-family: 'Orbitron', sans-serif; font-size: 38px; color: #4ade80; font-weight: 700; text-shadow: 0px 0px 10px rgba(74,222,128,0.4);">{get_tarih_formatsiz()}</div>
         <div style="font-family: 'Orbitron', sans-serif; font-size: 46px; color: #4ade80; font-weight: 700; letter-spacing: 3px; line-height: 0.8; text-shadow: 0px 0px 10px rgba(74,222,128,0.4);">{now.strftime('%H:%M')}</div>
     </div>
     """
     st.markdown(ust_panel_html, unsafe_allow_html=True)
 
-# DAHA PARLAK VE BELİRGİN BAŞLIKLAR
 st.markdown("<h3 style='color: #00ffff; font-size: 34px; margin-bottom: 5px; margin-top: 0; text-align: center; position: relative; z-index: 10; font-weight: 900; letter-spacing: 2px; text-shadow: 0px 0px 10px rgba(0,255,255,0.5), 0px 4px 15px rgba(0,0,0,0.9);'>LIVE MARKET DATA</h3>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
@@ -286,7 +277,9 @@ with col3:
 
 st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 5px 0; position: relative; z-index: 10;'>", unsafe_allow_html=True)
 
-# DAHA PARLAK VE BELİRGİN BAŞLIKLAR
+# AŞAĞI KAYDIRMA UYARISI
+st.markdown("<div class='scroll-indicator'>▼ SCROLL DOWN FOR AVERAGE (M-1) ▼</div>", unsafe_allow_html=True)
+
 st.markdown("<h3 style='color: #00ffff; font-size: 34px; margin-bottom: 5px; margin-top: 0; text-align: center; position: relative; z-index: 10; font-weight: 900; letter-spacing: 2px; text-shadow: 0px 0px 10px rgba(0,255,255,0.5), 0px 4px 15px rgba(0,0,0,0.9);'>AVERAGE (M-1)</h3>", unsafe_allow_html=True)
 
 m_col1, m_col2, m_col3 = st.columns(3)
@@ -296,10 +289,9 @@ with m_col1: st.markdown(ref("LME($)(M-1)", format_tamsayi(m1_veriler['LME($)(M-
 with m_col2: st.markdown(ref("LME(€)(M-1)", format_tamsayi(m1_veriler['LME(€)(M-1)'], "€")), unsafe_allow_html=True)
 with m_col3: st.markdown(ref("MB($)(M-1)", format_tamsayi(m1_veriler['MB($)(M-1)'], "$")), unsafe_allow_html=True)
 
-# YENİ İMZA VE TELİF HAKKI
 imza_html = """
-<div style="text-align: center; margin-top: 15px; margin-bottom: 10px; position: relative; z-index: 10;">
-    <span style="font-family: 'Segoe UI Light', 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 400; color: #cbd5e1; letter-spacing: 3px; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">Powered by Cem TAŞ | Copyright © | canliveriler 2.0</span>
+<div style="text-align: center; margin-top: 15px; margin-bottom: 60px; position: relative; z-index: 10;">
+    <span style="font-family: 'Segoe UI Light', 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 500; color: #cbd5e1; letter-spacing: 3px; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">Powered by Cem TAŞ</span>
 </div>
 """
 st.markdown(imza_html, unsafe_allow_html=True)
