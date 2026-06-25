@@ -26,12 +26,12 @@ if not filigran_b64: filigran_b64 = get_base64_of_bin_file("filigran.jpg")
 
 # --- STİL VE CSS AYARLARI ---
 filigran_html = f"""
-<style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');</style>
+<style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap');</style>
 <div class="watermark-bg"></div>
 <style>
 .watermark-bg {{ position: fixed; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); background-image: url("data:image/png;base64,{filigran_b64}"); background-size: 25%; background-position: center; background-repeat: no-repeat; opacity: 0.35; z-index: 0; pointer-events: none; }}
 </style>
-""" if filigran_b64 else "<style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');</style>"
+""" if filigran_b64 else "<style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap');</style>"
 st.markdown(filigran_html, unsafe_allow_html=True)
 
 st.markdown("""
@@ -41,67 +41,26 @@ footer {visibility: hidden; height: 0px !important;}
 .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; margin-top: -35px; max-width: 98% !important; position: relative; z-index: 10; }
 [data-testid="stAppViewContainer"] { background-color: #050810; overflow: hidden; } 
 
-/* BEYAZ ÇERÇEVELİ GLASSMORPHISM KARTLARI (Masaüstü Standart) */
 .metric-card, .ref-card { background: rgba(20, 25, 35, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.3); border-radius: 12px; text-align: center; position: relative; z-index: 10; transition: all 0.3s ease; }
 .metric-card { padding: 5px; margin-bottom: 0px; }
 .metric-title { font-size: 24px; color: #ffffff; font-weight: 700; text-transform: uppercase; margin-bottom: 0px; letter-spacing: 1px; }
 .metric-value { font-size: 50px; font-weight: bold; color: #ffffff; line-height: 1.1; text-shadow: 0px 2px 4px rgba(0,0,0,0.5); }
-
 .ref-card { padding: 5px; border-radius: 12px; }
 .ref-title { color: #ffffff; font-size: 20px; font-weight: 600; margin-bottom: 0px; }
 .ref-value { font-size: 34px; font-weight: bold; color: #fff; line-height: 1.1; text-shadow: 0px 2px 4px rgba(0,0,0,0.5); }
 
-/* BAŞLIK, TARİH VE İMZA CSS SINIFLARI (Masaüstü Standart) */
-.top-panel { display: flex; justify-content: space-between; align-items: center; padding: 0 5px; margin-top: 5px; margin-bottom: 10px; position: relative; z-index: 10; }
-.top-date { font-family: 'Orbitron', sans-serif; font-size: 40px; color: #4ade80; font-weight: 700; letter-spacing: 2px; text-shadow: 0px 0px 10px rgba(74,222,128,0.4); }
-.top-clock { font-family: 'Orbitron', sans-serif; font-size: 46px; color: #4ade80; font-weight: 700; letter-spacing: 3px; line-height: 0.8; text-shadow: 0px 0px 10px rgba(74,222,128,0.4); }
-
-.section-title { color: #00e5ff; font-size: 32px; margin-bottom: 5px; margin-top: 0; text-align: center; position: relative; z-index: 10; font-weight: 700; text-shadow: 0px 2px 5px rgba(0,0,0,0.8); }
-
-.sig-container { text-align: center; margin-top: 15px; margin-bottom: 10px; position: relative; z-index: 10; }
-.signature { font-family: 'Segoe UI Light', 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 300; font-style: italic; color: #cbd5e1; letter-spacing: 3px; text-shadow: 0px 1px 3px rgba(0,0,0,0.5); }
-
-/* ALARM EFEKTLERİ */
 @keyframes blink-green { 0% { border-color: rgba(76,175,80,0.5); box-shadow: 0 0 5px rgba(76,175,80,0.5); } 50% { border-color: #4caf50; background: rgba(76, 175, 80, 0.2); box-shadow: 0 0 30px rgba(76,175,80,0.8); } 100% { border-color: rgba(76,175,80,0.5); box-shadow: 0 0 5px rgba(76,175,80,0.5); } }
 .alarm-up { animation: blink-green 1.5s infinite !important; }
 @keyframes blink-red { 0% { border-color: rgba(239,83,80,0.5); box-shadow: 0 0 5px rgba(239,83,80,0.5); } 50% { border-color: #ef5350; background: rgba(239, 83, 80, 0.2); box-shadow: 0 0 30px rgba(239,83,80,0.8); } 100% { border-color: rgba(239,83,80,0.5); box-shadow: 0 0 5px rgba(239,83,80,0.5); } }
 .alarm-down { animation: blink-red 1.5s infinite !important; }
 
-/* KAYAN YAZI (Masaüstü) */
+/* KAYAN YAZI SABİT CSS MİMARİSİ */
 .marquee-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 38px; background-color: rgba(5, 8, 15, 0.98); border-top: 2px solid #4ade80; z-index: 9999; display: flex; align-items: center; overflow: hidden; }
 .marquee-content { width: 100%; color: #4ade80; font-size: 22px; font-weight: 600; letter-spacing: 1px; }
 .marquee-item { margin-right: 50px; }
 .marquee-item b { color: #ffffff; font-weight: 700; margin-right: 8px; }
 
 div[data-testid="stVerticalBlock"] > div { padding-bottom: 0.1rem !important; }
-
-/* ========================================================= */
-/* 📱 MOBİL CİHAZLAR İÇİN RESPONSIVE (DUYARLI) TASARIM KODLARI */
-/* ========================================================= */
-@media screen and (max-width: 768px) {
-    .metric-card { padding: 10px 5px; margin-bottom: 8px; }
-    .metric-title { font-size: 16px; letter-spacing: 0px; }
-    .metric-value { font-size: 32px; }
-    
-    .ref-card { padding: 8px 5px; margin-bottom: 8px; }
-    .ref-title { font-size: 14px; }
-    .ref-value { font-size: 24px; }
-
-    .top-panel { flex-direction: column; justify-content: center; gap: 5px; margin-top: 20px; }
-    .top-date { font-size: 18px; }
-    .top-clock { font-size: 28px; }
-
-    .section-title { font-size: 22px; margin-bottom: 8px; margin-top: 10px; }
-    
-    .sig-container { margin-top: 15px; margin-bottom: 50px; }
-    .signature { font-size: 14px; letter-spacing: 1px; }
-
-    .marquee-container { height: 32px; }
-    .marquee-content { font-size: 16px; }
-    .marquee-item { margin-right: 20px; }
-    
-    .watermark-bg { background-size: 50%; opacity: 0.2; } /* Mobilde çok karmaşık durmaması için ayarlandı */
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -190,35 +149,43 @@ def canli_ve_altbant_verilerini_cek():
         if degisim <= -alarm_limiti: return "alarm_down"
         return "normal"
     
+    # GÜÇLENDİRİLMİŞ VERİ ÇEKİCİ
     def investing_verisi_al(url, yf_ticker, is_tr=False):
         onceki = 0.0
         guncel = 0.0
+        
+        # 1. Önceki Gün Verisini Çek
         try:
-            hist = yf.Ticker(yf_ticker).history(period="2d")
-            if len(hist) > 1: onceki = float(hist['Close'].iloc[0])
-            elif len(hist) == 1: onceki = float(hist['Close'].iloc[0])
+            if yf_ticker:
+                hist = yf.Ticker(yf_ticker).history(period="5d")
+                if len(hist) > 1: onceki = float(hist['Close'].iloc[-2])
         except: pass
+        
+        # 2. Investing.com Canlı Çekim
         try:
             scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
             res = scraper.get(url, timeout=10)
             if res.status_code == 200:
-                soup = BeautifulSoup(res.text, 'html.parser')
-                price_tag = soup.find(attrs={"data-test": "instrument-price-last"})
-                val_str = ""
-                if price_tag: val_str = price_tag.text
-                else:
-                    matches = re.findall(r'class="text-5xl[^>]*>([0-9.,]+)</span>', res.text)
-                    if matches: val_str = matches[0]
-                if val_str:
+                match = re.search(r'data-test="instrument-price-last"[^>]*>([\d\.,]+)', res.text)
+                if not match: match = re.search(r'class="text-5xl[^>]*>([\d\.,]+)', res.text)
+                if match:
+                    val_str = match.group(1)
                     if is_tr: val_str = val_str.replace('.', '').replace(',', '.')
                     else: val_str = val_str.replace(',', '')
                     guncel = float(re.sub(r'[^0-9.]', '', val_str))
         except: pass
-        if guncel == 0.0:
+        
+        # 3. Investing Başarısızsa Yfinance Canlı (FastInfo) Devreye Girsin
+        if guncel == 0.0 and yf_ticker:
             try:
-                hist = yf.Ticker(yf_ticker).history(period="2d")
-                if len(hist) >= 1: guncel = float(hist['Close'].iloc[-1])
+                tkr = yf.Ticker(yf_ticker)
+                p = tkr.fastinfo.last_price
+                if p and p > 0: guncel = float(p)
+                else:
+                    hist = tkr.history(period="2d")
+                    if not hist.empty: guncel = float(hist['Close'].iloc[-1])
             except: pass
+            
         return guncel, onceki
 
     usd_g, usd_o = investing_verisi_al("https://tr.investing.com/currencies/usd-try", "TRY=X", is_tr=True)
@@ -265,14 +232,18 @@ def canli_ve_altbant_verilerini_cek():
     ekstra_semboller = {"BTC-USD": "BTC", "XU100.IS": "BIST", "BZ=F": "BRENT"}
     for sembol, isim in ekstra_semboller.items():
         try:
-            hist = yf.Ticker(sembol).history(period="2d")
-            if len(hist) > 0: alt_bant[isim] = float(hist['Close'].iloc[-1])
+            tkr = yf.Ticker(sembol)
+            p = tkr.fastinfo.last_price
+            if p and p > 0: alt_bant[isim] = float(p)
+            else:
+                hist = tkr.history(period="2d")
+                if len(hist) > 0: alt_bant[isim] = float(hist['Close'].iloc[-1])
         except: pass
             
     ons_g, _ = investing_verisi_al("https://tr.investing.com/currencies/xau-usd", "XAUUSD=X", is_tr=True)
     if ons_g > 0: alt_bant["ONS"] = ons_g
 
-    gram_g, _ = investing_verisi_al("https://tr.investing.com/currencies/gau-try", "GC=F", is_tr=True)
+    gram_g, _ = investing_verisi_al("https://tr.investing.com/currencies/gau-try", None, is_tr=True)
     if gram_g > 0: 
         alt_bant["GRAM"] = gram_g
     elif alt_bant["ONS"] > 0 and veri_paketi["USD/TL"]["val"] > 0:
@@ -284,19 +255,19 @@ veriler, alt_bant_verileri = canli_ve_altbant_verilerini_cek()
 m1_veriler = m1_gecmis_verileri_cek()
 
 # --- ARAYÜZ OLUŞTURMA ---
-
 top_empty = st.empty()
 with top_empty.container():
     now = datetime.datetime.now()
     ust_panel_html = f"""
-    <div class="top-panel">
-        <div class="top-date">{get_ingilizce_tarih()}</div>
-        <div class="top-clock">{now.strftime('%H:%M')}</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 5px; margin-top: 5px; margin-bottom: 10px; position: relative; z-index: 10;">
+        <div style="font-family: 'Orbitron', sans-serif; font-size: 40px; color: #4ade80; font-weight: 700; letter-spacing: 2px; text-shadow: 0px 0px 10px rgba(74,222,128,0.4);">{get_ingilizce_tarih()}</div>
+        <div style="font-family: 'Orbitron', sans-serif; font-size: 46px; color: #4ade80; font-weight: 700; letter-spacing: 3px; line-height: 0.8; text-shadow: 0px 0px 10px rgba(74,222,128,0.4);">{now.strftime('%H:%M')}</div>
     </div>
     """
     st.markdown(ust_panel_html, unsafe_allow_html=True)
 
-st.markdown("<h3 class='section-title'>LIVE MARKET DATA</h3>", unsafe_allow_html=True)
+# DAHA PARLAK VE BELİRGİN BAŞLIKLAR
+st.markdown("<h3 style='color: #00ffff; font-size: 34px; margin-bottom: 5px; margin-top: 0; text-align: center; position: relative; z-index: 10; font-weight: 900; letter-spacing: 2px; text-shadow: 0px 0px 10px rgba(0,255,255,0.5), 0px 4px 15px rgba(0,0,0,0.9);'>LIVE MARKET DATA</h3>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 def kart(baslik, deger, durum): 
@@ -315,7 +286,8 @@ with col3:
 
 st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 5px 0; position: relative; z-index: 10;'>", unsafe_allow_html=True)
 
-st.markdown("<h3 class='section-title'>AVERAGE (M-1)</h3>", unsafe_allow_html=True)
+# DAHA PARLAK VE BELİRGİN BAŞLIKLAR
+st.markdown("<h3 style='color: #00ffff; font-size: 34px; margin-bottom: 5px; margin-top: 0; text-align: center; position: relative; z-index: 10; font-weight: 900; letter-spacing: 2px; text-shadow: 0px 0px 10px rgba(0,255,255,0.5), 0px 4px 15px rgba(0,0,0,0.9);'>AVERAGE (M-1)</h3>", unsafe_allow_html=True)
 
 m_col1, m_col2, m_col3 = st.columns(3)
 def ref(baslik, deger): return f"""<div class='ref-card'><div class='ref-title'>{baslik}</div><div class='ref-value'>{deger}</div></div>"""
@@ -324,14 +296,14 @@ with m_col1: st.markdown(ref("LME($)(M-1)", format_tamsayi(m1_veriler['LME($)(M-
 with m_col2: st.markdown(ref("LME(€)(M-1)", format_tamsayi(m1_veriler['LME(€)(M-1)'], "€")), unsafe_allow_html=True)
 with m_col3: st.markdown(ref("MB($)(M-1)", format_tamsayi(m1_veriler['MB($)(M-1)'], "$")), unsafe_allow_html=True)
 
+# YENİ İMZA VE TELİF HAKKI
 imza_html = """
-<div class="sig-container">
-    <span class="signature">Powered by Cem TAŞ</span>
+<div style="text-align: center; margin-top: 15px; margin-bottom: 10px; position: relative; z-index: 10;">
+    <span style="font-family: 'Segoe UI Light', 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 400; color: #cbd5e1; letter-spacing: 3px; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">Powered by Cem TAŞ | Copyright © | canliveriler 2.0</span>
 </div>
 """
 st.markdown(imza_html, unsafe_allow_html=True)
 
-# KAYAN YAZI
 kayan_str = (
     f"<div class='marquee-container'><marquee class='marquee-content' scrollamount='8'>"
     f"<span class='marquee-item'><b>GRAM ALTIN (GAU):</b> {format_tamsayi(alt_bant_verileri['GRAM'], '₺')}</span>"
