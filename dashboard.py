@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import time
 import yfinance as yf
 import requests
 from bs4 import BeautifulSoup
