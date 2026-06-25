@@ -25,7 +25,6 @@ filigran_b64 = get_base64_of_bin_file("filigran.png")
 if not filigran_b64: filigran_b64 = get_base64_of_bin_file("filigran.jpg")
 
 # --- STİL VE CSS AYARLARI ---
-# Buzlu cam efekti azaltıldı ve filigran belirginleştirildi
 filigran_html = f"""
 <style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap');</style>
 <div class="watermark-bg"></div>
@@ -42,8 +41,8 @@ footer {visibility: hidden; height: 0px !important;}
 .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; margin-top: -30px; max-width: 98% !important; position: relative; z-index: 10; }
 [data-testid="stAppViewContainer"] { background-color: #050810; overflow: hidden; } 
 
-/* BUZLU CAM EFEKTİ DÜZELTİLDİ (Daha şeffaf, daha az bulanık) */
-.metric-card, .ref-card { background: rgba(10, 15, 25, 0.25); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.3); border-radius: 12px; text-align: center; position: relative; z-index: 10; transition: all 0.3s ease; }
+/* BUZLU CAM EFEKTİ DÜZELTİLDİ (Daha şeffaf, filigran daha net) */
+.metric-card, .ref-card { background: rgba(10, 15, 25, 0.25); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.3); border-radius: 12px; text-align: center; position: relative; z-index: 10; transition: all 0.3s ease; }
 .metric-card { padding: 5px; margin-bottom: 0px; }
 .metric-title { font-size: 24px; color: #ffffff; font-weight: 700; text-transform: uppercase; margin-bottom: 0px; letter-spacing: 1px; }
 .metric-value { font-size: 50px; font-weight: bold; color: #ffffff; line-height: 1.1; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); }
@@ -75,6 +74,7 @@ def get_ingilizce_tarih():
 def format_tamsayi(deger, sembol=""):
     try:
         if deger != deger or deger is None or deger == 0: return f"{sembol} 0".strip()
+        # Tam sayıya yuvarlayıp binlik ayraç olarak virgül koyar, sonra onu noktaya çevirir
         return f"{sembol} {int(round(float(deger))):,}".replace(",", ".").strip()
     except: return f"{sembol} 0".strip()
 
@@ -84,9 +84,9 @@ def format_ondalik(deger, sembol=""):
         return f"{sembol} {deger:.2f}".strip()
     except: return f"{sembol} 0.00".strip()
 
-# --- M-1 VERİ ÇEKME FONKSİYONU ---
+# --- M-1 VERİ ÇEKME FONKSİYONU (CACHE KIRICI İSİM V5) ---
 @st.cache_data(ttl=3600)
-def m1_gecmis_verileri_cek():
+def gecmis_ay_verileri_v5():
     now = datetime.datetime.now()
     son_gun = now.replace(day=1) - datetime.timedelta(days=1)
     ilk_gun = son_gun.replace(day=1)
@@ -133,9 +133,9 @@ def m1_gecmis_verileri_cek():
     except: pass
     return m1_data
 
-# --- KESİNTİSİZ ÇİFT MOTORLU (DUAL-ENGINE) VERİ ÇEKİCİ ---
+# --- CANLI VERİ VE ALT BANT ÇEKME (CACHE KIRICI İSİM V5) ---
 @st.cache_data(ttl=60)
-def canli_ve_altbant_verilerini_cek():
+def anlik_piyasa_verileri_v5():
     veri_paketi = {
         "LME Aluminium ($)": {"val": 0.0, "durum": "normal"}, "LME Aluminium (€)": {"val": 0.0, "durum": "normal"},
         "Metal Bulletin ($)": {"val": 0.0, "durum": "normal"}, "USD/TL": {"val": 0.0, "durum": "normal"},
@@ -151,11 +151,9 @@ def canli_ve_altbant_verilerini_cek():
         if degisim <= -alarm_limiti: return "alarm_down"
         return "normal"
     
-    # GÜÇLENDİRİLMİŞ KURTARICILI VERİ BOTU
     def get_data_safe(ticker, inv_url, is_tr):
         val, prev = 0.0, 0.0
         
-        # 1. Önceki Kapanışı Yfinance'ten garantiye al
         try:
             if ticker:
                 tkr = yf.Ticker(ticker)
@@ -164,7 +162,6 @@ def canli_ve_altbant_verilerini_cek():
                 elif len(hist) == 1: prev = float(hist['Close'].iloc[0])
         except: pass
         
-        # 2. Investing.com'u zorla
         try:
             if inv_url:
                 scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
@@ -179,7 +176,6 @@ def canli_ve_altbant_verilerini_cek():
                         val = float(re.sub(r'[^0-9.]', '', v_str))
         except: pass
         
-        # 3. Yfinance Canlı Kurtarıcı (Investing Çökerse Devreye Girer)
         if val == 0.0 and ticker:
             try:
                 tkr = yf.Ticker(ticker)
@@ -192,7 +188,6 @@ def canli_ve_altbant_verilerini_cek():
             
         return val, prev
 
-    # Verileri Çek
     usd_g, usd_o = get_data_safe("TRY=X", "https://tr.investing.com/currencies/usd-try", True)
     if usd_g > 0:
         veri_paketi["USD/TL"]["val"] = usd_g
@@ -213,12 +208,10 @@ def canli_ve_altbant_verilerini_cek():
         veri_paketi["PARİTE (EURO/USD)"]["val"] = p_guncel
         veri_paketi["PARİTE (EURO/USD)"]["durum"] = alarm_hesapla(p_guncel, p_onceki)
 
-    # LME Euro Hesabı
     if veri_paketi["PARİTE (EURO/USD)"]["val"] > 0 and veri_paketi["LME Aluminium ($)"]["val"] > 0: 
         veri_paketi["LME Aluminium (€)"]["val"] = veri_paketi["LME Aluminium ($)"]["val"] / veri_paketi["PARİTE (EURO/USD)"]["val"]
         veri_paketi["LME Aluminium (€)"]["durum"] = veri_paketi["LME Aluminium ($)"]["durum"]
     
-    # Metal Bulletin (TradingView)
     try:
         payload = {"symbols": {"tickers": ["COMEX:EDP1!"]}, "columns": ["close"]}
         for endpoint in ["america", "global", "futures"]:
@@ -232,13 +225,11 @@ def canli_ve_altbant_verilerini_cek():
             except: continue
     except: pass
 
-    # Alt Bant Verileri
     alt_bant["BTC"], _ = get_data_safe("BTC-USD", None, False)
     alt_bant["BIST"], _ = get_data_safe("XU100.IS", None, False)
     alt_bant["BRENT"], _ = get_data_safe("BZ=F", None, False)
     alt_bant["ONS"], _ = get_data_safe("XAUUSD=X", "https://tr.investing.com/currencies/xau-usd", True)
     
-    # Gram Altın (Investing'den gelmezse hatasız matematiksel formülle kurtarır)
     gram_g, _ = get_data_safe(None, "https://tr.investing.com/currencies/gau-try", True)
     if gram_g > 0: 
         alt_bant["GRAM"] = gram_g
@@ -247,13 +238,14 @@ def canli_ve_altbant_verilerini_cek():
 
     return veri_paketi, alt_bant
 
-veriler, alt_bant_verileri = canli_ve_altbant_verilerini_cek()
-m1_veriler = m1_gecmis_verileri_cek()
+veriler, alt_bant_verileri = anlik_piyasa_verileri_v5()
+m1_veriler = gecmis_ay_verileri_v5()
 
 # --- ARAYÜZ OLUŞTURMA ---
 top_empty = st.empty()
 with top_empty.container():
     now = datetime.datetime.now()
+    # Tarih ve saat ikisi de neon yeşil (#4ade80)
     ust_panel_html = f"""
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; margin-bottom: 10px;">
         <div style="font-family: 'Orbitron', sans-serif; font-size: 38px; color: #4ade80; font-weight: 700; text-shadow: 0px 0px 10px rgba(74,222,128,0.4);">{get_ingilizce_tarih()}</div>
@@ -290,7 +282,6 @@ with m_col1: st.markdown(ref("LME($)(M-1)", format_tamsayi(m1_veriler['LME($)(M-
 with m_col2: st.markdown(ref("LME(€)(M-1)", format_tamsayi(m1_veriler['LME(€)(M-1)'], "€")), unsafe_allow_html=True)
 with m_col3: st.markdown(ref("MB($)(M-1)", format_tamsayi(m1_veriler['MB($)(M-1)'], "$")), unsafe_allow_html=True)
 
-# İMZA (Boşluk artırılarak kayan yazının altında ezilmesi engellendi)
 imza_html = """
 <div style="text-align: center; margin-top: 15px; margin-bottom: 60px; position: relative; z-index: 10;">
     <span style="font-family: 'Segoe UI Light', 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 500; color: #cbd5e1; letter-spacing: 3px; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">Powered by Cem TAŞ | Copyright © | canliveriler 2.0</span>
@@ -298,7 +289,7 @@ imza_html = """
 """
 st.markdown(imza_html, unsafe_allow_html=True)
 
-# KAYAN YAZI
+# TAM SAYI (KÜSÜRATSIZ) VE NOKTALI KAYAN YAZI BANDI
 kayan_str = (
     f"<div class='marquee-container'><marquee class='marquee-content' scrollamount='8'>"
     f"<span class='marquee-item'><b>GRAM ALTIN (GAU):</b> {format_tamsayi(alt_bant_verileri['GRAM'], '₺')}</span>"
